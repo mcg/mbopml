@@ -1,7 +1,7 @@
 use reqwest::header::{HeaderMap, HeaderValue, AUTHORIZATION};
 use serde_json::Value;
-use xml::writer::{EmitterConfig, XmlEvent};
 use structopt::StructOpt;
+use xml::writer::{EmitterConfig, XmlEvent};
 
 #[derive(StructOpt)]
 struct Opt {
@@ -28,7 +28,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let url = format!("https://micro.blog/users/following/{}", username);
     let mut headers = HeaderMap::new();
-    headers.insert(AUTHORIZATION, HeaderValue::from_str(&format!("Bearer {}", api_key))?);
+    headers.insert(
+        AUTHORIZATION,
+        HeaderValue::from_str(&format!("Bearer {}", api_key))?,
+    );
 
     let client = reqwest::Client::new();
     let response = client.get(&url).headers(headers).send().await?;
@@ -38,7 +41,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         let opml = generate_opml(following_list, format);
         println!("{}", opml);
     } else {
-        println!("Failed to download following list. Status code: {}", response.status());
+        println!(
+            "Failed to download following list. Status code: {}",
+            response.status()
+        );
     }
 
     Ok(())
@@ -46,7 +52,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
 fn generate_opml(following_list: Value, format: &str) -> String {
     let mut buffer = Vec::new();
-    let mut writer = EmitterConfig::new().perform_indent(true).create_writer(&mut buffer);
+    let mut writer = EmitterConfig::new()
+        .perform_indent(true)
+        .create_writer(&mut buffer);
 
     writer.write(XmlEvent::start_element("opml")).unwrap();
     writer.write(XmlEvent::start_element("head")).unwrap();
