@@ -4,7 +4,7 @@ import xml.etree.ElementTree as ET
 
 def download_following_list(api_key, username, format):
     url = f"https://micro.blog/users/following/{username}"
-    headers = {"Authorization": f"Bearer {api_key}"}
+    headers = {"Authorization": "Bearer {api_key}"}
     response = requests.get(url, headers=headers)
     
     if response.status_code == 200:

@@ -1,20 +1,30 @@
 use reqwest::header::{HeaderMap, HeaderValue, AUTHORIZATION};
 use serde_json::Value;
-use std::env;
-use std::process;
 use xml::writer::{EmitterConfig, XmlEvent};
+use structopt::StructOpt;
+
+#[derive(StructOpt)]
+struct Opt {
+    /// Micro.blog API key
+    #[structopt(long = "api-key")]
+    api_key: String,
+
+    /// Username
+    #[structopt(long = "username")]
+    username: String,
+
+    /// Format
+    #[structopt(long = "format")]
+    format: String,
+}
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let args: Vec<String> = env::args().collect();
-    if args.len() != 4 {
-        println!("Please provide the Micro.blog API key, username, and format using the --api-key, --username, and --format arguments.");
-        process::exit(1);
-    }
+    let opt = Opt::from_args();
 
-    let api_key = &args[1];
-    let username = &args[2];
-    let format = &args[3];
+    let api_key = &opt.api_key;
+    let username = &opt.username;
+    let format = &opt.format;
 
     let url = format!("https://micro.blog/users/following/{}", username);
     let mut headers = HeaderMap::new();
@@ -51,12 +61,17 @@ fn generate_opml(following_list: Value, format: &str) -> String {
             "json" => format!("https://{}.micro.blog/feed.json", username),
             _ => String::new(),
         };
-
         writer.write(XmlEvent::start_element("outline")).unwrap();
-        writer.write(XmlEvent::attribute("text", name)).unwrap();
-        writer.write(XmlEvent::attribute("type", "rss")).unwrap();
-        writer.write(XmlEvent::attribute("title", name)).unwrap();
-        writer.write(XmlEvent::attribute("xmlUrl", &xml_url)).unwrap();
+        writer.write(XmlEvent::characters(name)).unwrap();
+        writer.write(XmlEvent::start_element("type")).unwrap();
+        writer.write(XmlEvent::characters("rss")).unwrap();
+        writer.write(XmlEvent::end_element()).unwrap(); // end type
+        writer.write(XmlEvent::start_element("title")).unwrap();
+        writer.write(XmlEvent::characters(name)).unwrap();
+        writer.write(XmlEvent::end_element()).unwrap(); // end title
+        writer.write(XmlEvent::start_element("xmlUrl")).unwrap();
+        writer.write(XmlEvent::characters(&xml_url)).unwrap();
+        writer.write(XmlEvent::end_element()).unwrap(); // end xmlUrl
         writer.write(XmlEvent::end_element()).unwrap(); // end outline
     }
 
