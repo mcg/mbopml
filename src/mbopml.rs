@@ -1,26 +1,28 @@
 use reqwest::header::{HeaderMap, HeaderValue, AUTHORIZATION};
+use clap::Parser;
 use serde_json::Value;
-use structopt::StructOpt;
 use xml::writer::{EmitterConfig, XmlEvent};
 
-#[derive(StructOpt)]
+#[derive(Parser)]
+#[command(name = "mbopml")]
+#[command(about = "A tool to interact with Micro.blog API", long_about = None)]
 struct Opt {
     /// Micro.blog API key
-    #[structopt(long = "api-key")]
+    #[arg(long = "api-key")]
     api_key: String,
 
     /// Username
-    #[structopt(long = "username")]
+    #[arg(long = "username")]
     username: String,
 
     /// Format
-    #[structopt(long = "format")]
+    #[arg(long = "format")]
     format: String,
 }
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let opt = Opt::from_args();
+    let opt = Opt::parse();
 
     let api_key = &opt.api_key;
     let username = &opt.username;
