@@ -1,0 +1,12 @@
+[project]
+name = "mbopml"
+version = "0.1.0"
+description = "Export Micro.blog following as OPML"
+readme = "README.md"
+requires-python = ">=3.9"
+dependencies = [
+  "requests",
+]
+
+[tool.uv]
+package = false
