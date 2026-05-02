@@ -1,7 +1,22 @@
 use reqwest::header::{HeaderMap, HeaderValue, AUTHORIZATION};
-use clap::Parser;
+use clap::{Parser, ValueEnum};
 use serde_json::Value;
 use xml::writer::{EmitterConfig, XmlEvent};
+
+#[derive(Clone, Copy, Debug, ValueEnum)]
+enum FeedFormat {
+    Xml,
+    Json,
+}
+
+impl FeedFormat {
+    fn feed_url(self, username: &str) -> String {
+        match self {
+            Self::Xml => format!("https://{}.micro.blog/feed.xml", username),
+            Self::Json => format!("https://{}.micro.blog/feed.json", username),
+        }
+    }
+}
 
 #[derive(Parser)]
 #[command(name = "mbopml")]
@@ -17,7 +32,7 @@ struct Opt {
 
     /// Format
     #[arg(long = "format")]
-    format: String,
+    format: FeedFormat,
 }
 
 #[tokio::main]
@@ -26,7 +41,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let api_key = &opt.api_key;
     let username = &opt.username;
-    let format = &opt.format;
+    let format = opt.format;
 
     let url = format!("https://micro.blog/users/following/{}", username);
     let mut headers = HeaderMap::new();
@@ -52,7 +67,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     Ok(())
 }
 
-fn generate_opml(following_list: Value, format: &str) -> String {
+fn generate_opml(following_list: Value, format: FeedFormat) -> String {
     let mut buffer = Vec::new();
     let mut writer = EmitterConfig::new()
         .perform_indent(true)
@@ -66,11 +81,7 @@ fn generate_opml(following_list: Value, format: &str) -> String {
     for user in following_list.as_array().unwrap() {
         let name = user["name"].as_str().unwrap();
         let username = user["username"].as_str().unwrap();
-        let xml_url = match format {
-            "xml" => format!("https://{}.micro.blog/feed.xml", username),
-            "json" => format!("https://{}.micro.blog/feed.json", username),
-            _ => String::new(),
-        };
+        let xml_url = format.feed_url(username);
         writer.write(XmlEvent::start_element("outline")).unwrap();
         writer.write(XmlEvent::characters(name)).unwrap();
         writer.write(XmlEvent::start_element("type")).unwrap();
