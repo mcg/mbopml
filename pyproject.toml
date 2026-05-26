@@ -3,7 +3,11 @@ name = "mbopml"
 version = "0.1.0"
 description = "Export Micro.blog following as OPML"
 readme = "README.md"
-requires-python = ">=3.9"
+requires-python = ">=3.14"
+classifiers = [
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.14",
+]
 dependencies = [
   "requests",
 ]

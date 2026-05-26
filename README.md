@@ -1,7 +1,10 @@
 # mbopml
+
 Export Micro.Blog following as OPML
 
 ## Python setup (uv)
+
+Supports Python 3.14.
 
 Install dependencies:
 
